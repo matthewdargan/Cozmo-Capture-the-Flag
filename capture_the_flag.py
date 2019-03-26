@@ -4,6 +4,7 @@ Authors: Matthew Dargan, Daniel Stutz
 
 import cozmo
 from cozmo.util import degrees
+
 from cozmo_interface import *
 from colors import Colors
 
