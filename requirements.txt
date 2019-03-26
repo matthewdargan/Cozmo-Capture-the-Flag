@@ -1,1 +1,2 @@
-cozmo==1.4.9
+cozmo
+pygame
