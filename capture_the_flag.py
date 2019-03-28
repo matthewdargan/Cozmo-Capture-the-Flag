@@ -47,7 +47,12 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
         else:
             robot1_cubes.append(robot1.world.get_light_cube(LightCube3Id))
             robot2_cubes.append(robot2.world.get_light_cube(LightCube3Id))
-   
+
+    for cube in len(robot1_cubes):
+        robot1_cubes[cube].set_lights(cozmo.lights.blue_light)
+        robot2_cubes[cube].set_lights(cozmo.lights.red_light)
+
+
  
 if __name__ == '__main__':
     if platform.system() == 'Windows':
