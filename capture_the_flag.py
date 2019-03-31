@@ -9,8 +9,8 @@ import time
 import cozmo
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
 
-import cozmo_interface
-import xbox_controller
+from linux_tools import cozmo_interface
+from windows_tools import xbox_controller
 
 
 async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):

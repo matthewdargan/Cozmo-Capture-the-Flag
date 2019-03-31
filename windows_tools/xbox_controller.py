@@ -1,4 +1,4 @@
-from xinput import *
+from windows_tools.xinput import *
 import cozmo
 from math import *
 
