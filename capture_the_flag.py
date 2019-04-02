@@ -99,6 +99,7 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
         # get the current statuses for whether a new cube of the opponent is in the user's base
+        # TODO: possibly fix is_in_base to be relative to each robot's positions
         (robot1_acquire_status, robot2_acquire_status) = is_in_base(robot1_cubes, robot2_cubes, origin_boundary)
 
         # if a user has acquired one of the opponent's cubes then increment their score
@@ -160,8 +161,10 @@ def reset(robot_cubes, robot):
     :param robot_cubes: list of the robot's cubes that need to be reset
     :param robot: one of the current robots in the game
     """
-    # TODO: allow a user to reset the locations of however many cubes are being used using time.sleep(...)
-    #       sleep the controller thread as well to prevent players from controller the robots during reset time
+
+    # TODO: have the robots themselves reset the cubes, add error handling to make sure the cubes are not still
+    #       in an opponent's base in case they do not reset the locations of the cubes in time
+
     # timeout the game for 15 seconds so the users have time to re-hide their cubes
     time.sleep(15)
 
