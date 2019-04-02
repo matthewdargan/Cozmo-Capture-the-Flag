@@ -15,8 +15,14 @@ from windows_tools import xbox_controller
 
 async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     """
-    TODO: comment main function
+    Main entry point for running the logic for the capture the flag game.
+
+    TODO: abstract this out so its a list of up to 4 robots
+    :param robot1: first robot in the game
+    :param robot2: second robot in the game
     """
+
+    # get the number of cubes the users want to play with in the game
     while True:
         try:
             num_cubes = int(input("How many cubes do you want to play with?"))
@@ -32,9 +38,11 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
         else:
             break
 
+    # lists for storing robot1's and robot2's cubes
     robot1_cubes = []
     robot2_cubes = []
 
+    # add the cubes to their respective lists
     for cube_num in range(num_cubes):
         if cube_num == 1:
             robot1_cubes.append(robot1.world.get_light_cube(LightCube1Id))
@@ -46,10 +54,12 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
             robot1_cubes.append(robot1.world.get_light_cube(LightCube3Id))
             robot2_cubes.append(robot2.world.get_light_cube(LightCube3Id))
 
+    # set the colors for robot1's cubes to blue and robot2's to red
     for cube in range(len(robot1_cubes)):
         robot1_cubes[cube].set_lights(cozmo.lights.blue_light)
         robot2_cubes[cube].set_lights(cozmo.lights.red_light)
 
+    # get the value for the maximum score in the game from the users
     while True:
         try:
             max_score = int(input("How many points do you want to play up to?"))
@@ -63,10 +73,17 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
             break
 
     print("Set Cozmo's in position to play.")
+
+    # give a 10 second period for the users to set their robots in their bases and hide their cubes
     time.sleep(10)
+
+    # get robot1's and robot2's origins
     robot1_origin = robot1.pose
     robot2_origin = robot2.pose
+
+    # set the capture boundaries for stealing an opponent's cubes
     origin_boundary = (300, 300, 0)
+
     print("Start playing!")
 
     # allow the users to start controlling the robots here
@@ -75,15 +92,20 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     else:
         multiprocessing.Process(target=cozmo_interface.cozmo_program()).start()
 
+    # set default scores for each side
     robot1_score = 0
     robot2_score = 0
+
+    # set the cube acquire status for stealing cubes to false as the default
     robot1_acquire_status = False
     robot2_acquire_status = False
 
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
+        # get the current statuses for whether a new cube of the opponent is in the user's base
         (robot1_acquire_status, robot2_acquire_status) = is_in_base(robot1_cubes, robot2_cubes, origin_boundary)
 
+        # if a user has acquired one of the opponent's cubes then increment their score
         if robot1_acquire_status:
             robot1_score += 1
         if robot2_acquire_status:
@@ -98,7 +120,7 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
 
 def get_platform():
     """
-    Get the operating system that the user is on so we call the correct xbox controller functionality script
+    Get the operating system that the user is on so we call the correct xbox controller functionality script.
 
     :return: a string containing the operating system that the user is on
     """
@@ -112,7 +134,7 @@ def get_platform():
 
 def is_in_base(robot1_cubes, robot2_cubes, origin_boundary):
     """
-    Check the location of the cube relative to an opponent's base
+    Check the location of the cube relative to an opponent's base.
 
     :return: a conditional tuple containing the cube acquirement statuses for robot1 and robot2
     """
@@ -137,7 +159,7 @@ def is_in_base(robot1_cubes, robot2_cubes, origin_boundary):
 
 def reset(robot_cubes):
     """
-    Reset the game state so that we allow the user to re-hide their cubes and them continue playing
+    Reset the game state so that we allow the user to re-hide their cubes and them continue playing.
 
     :param robot_cubes: one of the robots cubes that need to be reset
     :return:
