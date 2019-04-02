@@ -96,10 +96,6 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     robot1_score = 0
     robot2_score = 0
 
-    # set the cube acquire status for stealing cubes to false as the default
-    robot1_acquire_status = False
-    robot2_acquire_status = False
-
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
         # get the current statuses for whether a new cube of the opponent is in the user's base
@@ -113,9 +109,9 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
 
         # if all of the cubes have already been found, let the users reset the locations and then resume playing
         if robot1_score % num_cubes == 0:
-            reset(robot1_cubes)
+            reset(robot2_cubes, robot2)
         if robot2_score % num_cubes == 0:
-            reset(robot2_cubes)
+            reset(robot1_cubes, robot1)
 
 
 def get_platform():
@@ -157,15 +153,26 @@ def is_in_base(robot1_cubes, robot2_cubes, origin_boundary):
     return robot1_cond, robot2_cond
 
 
-def reset(robot_cubes):
+def reset(robot_cubes, robot):
     """
     Reset the game state so that we allow the user to re-hide their cubes and them continue playing.
 
-    :param robot_cubes: one of the robots cubes that need to be reset
-    :return:
+    :param robot_cubes: list of the robot's cubes that need to be reset
+    :param robot: one of the current robots in the game
     """
     # TODO: allow a user to reset the locations of however many cubes are being used using time.sleep(...)
     #       sleep the controller thread as well to prevent players from controller the robots during reset time
+    # timeout the game for 15 seconds so the users have time to re-hide their cubes
+    time.sleep(15)
+
+    # reset the positions of all of the cubes for a robot
+    for i, _ in enumerate(robot_cubes):
+        if i == 0:
+            robot_cubes[i] = robot.world.get_light_cube(LightCube1Id)
+        elif i == 1:
+            robot_cubes[i] = robot.world.get_light_cube(LightCube2Id)
+        else:
+            robot_cubes[i] = robot.world.get_light_cube(LightCube3Id)
 
 
 if __name__ == '__main__':
