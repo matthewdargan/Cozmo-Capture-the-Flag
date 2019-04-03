@@ -2,6 +2,7 @@
 Authors: Matthew Dargan, Daniel Stutz
 """
 
+from typing import List, Tuple
 import multiprocessing
 import platform
 import time
@@ -25,7 +26,7 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     # get the number of cubes the users want to play with in the game
     while True:
         try:
-            num_cubes = int(input("How many cubes do you want to play with?"))
+            num_cubes: int = int(input("How many cubes do you want to play with?"))
         except ValueError:
             print("Invalid input type")
             continue
@@ -39,8 +40,8 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
             break
 
     # lists for storing robot1's and robot2's cubes
-    robot1_cubes = []
-    robot2_cubes = []
+    robot1_cubes: List[int] = []
+    robot2_cubes: List[int] = []
 
     # add the cubes to their respective lists
     for cube_num in range(num_cubes):
@@ -62,7 +63,7 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     # get the value for the maximum score in the game from the users
     while True:
         try:
-            max_score = int(input("How many points do you want to play up to?"))
+            max_score: int = int(input("How many points do you want to play up to?"))
         except ValueError:
             print("Invalid input type")
             continue
@@ -82,7 +83,7 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     robot2_origin = robot2.pose
 
     # set the capture boundaries for stealing an opponent's cubes
-    origin_boundary = (300, 300, 0)
+    origin_boundary: Tuple[int, int, int] = (300, 300, 0)
 
     print("Start playing!")
 
@@ -93,8 +94,8 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
         multiprocessing.Process(target=cozmo_interface.cozmo_program()).start()
 
     # set default scores for each side
-    robot1_score = 0
-    robot2_score = 0
+    robot1_score: int = 0
+    robot2_score: int = 0
 
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
@@ -115,7 +116,7 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
             reset(robot1_cubes, robot1)
 
 
-def get_platform():
+def get_platform() -> str:
     """
     Get the operating system that the user is on so we call the correct xbox controller functionality script.
 
@@ -129,7 +130,7 @@ def get_platform():
         return 'Linux'
 
 
-def is_in_base(robot1_cubes, robot2_cubes, origin_boundary):
+def is_in_base(robot1_cubes: List[int], robot2_cubes: List[int], origin_boundary: Tuple[int, int, int]) -> Tuple[bool, bool]:
     """
     Check the location of the cube relative to an opponent's base.
 
@@ -154,7 +155,7 @@ def is_in_base(robot1_cubes, robot2_cubes, origin_boundary):
     return robot1_cond, robot2_cond
 
 
-def reset(robot_cubes, robot):
+def reset(robot_cubes: List[int], robot: cozmo.robot.Robot):
     """
     Reset the game state so that we allow the user to re-hide their cubes and them continue playing.
 
