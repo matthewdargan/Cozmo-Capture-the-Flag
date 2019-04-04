@@ -3,12 +3,13 @@ Authors: Matthew Dargan, Daniel Stutz
 """
 
 from typing import List, Tuple
+from itertools import permutations
 import multiprocessing
 import platform
 import time
 
 import cozmo
-from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id
+from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, LightCube
 
 from linux_tools import cozmo_interface
 from windows_tools import xbox_controller
@@ -40,8 +41,8 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
             break
 
     # lists for storing robot1's and robot2's cubes
-    robot1_cubes: List[int] = []
-    robot2_cubes: List[int] = []
+    robot1_cubes: List[LightCube] = []
+    robot2_cubes: List[LightCube] = []
 
     # add the cubes to their respective lists
     for cube_num in range(num_cubes):
@@ -79,19 +80,26 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     time.sleep(10)
 
     # get robot1's and robot2's origins
-    robot1_origin = robot1.pose
-    robot2_origin = robot2.pose
+    robot1_origin: cozmo.util.Pose = robot1.pose
+    robot2_origin: cozmo.util.Pose = robot2.pose
 
-    # set the capture boundaries for stealing an opponent's cubes
-    origin_boundary: Tuple[int, int, int] = (300, 300, 0)
+    # TODO: use robot origins to set their own boundaries with x, y + 300 as the max coordinates
+
+    # set the capture boundaries for stealing an opponent's cubes with coordinates forming a box
+    perm = permutations([0, 300, 0, 300], 2)
+    origin_boundaries: List[Tuple[int]] = list(set(perm))
 
     print("Start playing!")
 
     # allow the users to start controlling the robots here
     if get_platform() == 'Windows':
-        multiprocessing.Process(target=xbox_controller.cozmo_program()).start()
+        # TODO: figure out whether we want one thread or separate threads for the controller states
+        #  for the different robots
+        multiprocessing.Process(target=xbox_controller.cozmo_program(robot1)).start()
+        multiprocessing.Process(target=xbox_controller.cozmo_program(robot2)).start()
     else:
-        multiprocessing.Process(target=cozmo_interface.cozmo_program()).start()
+        multiprocessing.Process(target=cozmo_interface.cozmo_program(robot1)).start()
+        multiprocessing.Process(target=cozmo_interface.cozmo_program(robot2)).start()
 
     # set default scores for each side
     robot1_score: int = 0
@@ -130,32 +138,47 @@ def get_platform() -> str:
         return 'Linux'
 
 
-def is_in_base(robot1_cubes: List[int], robot2_cubes: List[int], origin_boundary: Tuple[int, int, int]) -> Tuple[bool, bool]:
+def is_in_base(robot1_cubes: List[LightCube], robot2_cubes: List[LightCube], origin_boundaries: List[Tuple[int]]) -> Tuple[bool, bool]:
     """
     Check the location of the cube relative to an opponent's base.
 
     :return: a conditional tuple containing the cube acquirement statuses for robot1 and robot2
     """
-    robot1_cond = False  # if a cube is in robot 1's base
-    robot2_cond = False  # if a cube is in robot 2's base
+    robot1_cond: bool = False  # if a cube is in robot 1's base
+    robot2_cond: bool = False  # if a cube is in robot 2's base
 
     for cube in range(len(robot1_cubes)):
-        cube1_position = robot1_cubes[cube].Position
-        cube2_position = robot2_cubes[cube].Position
+        cube1_position: cozmo.util.Position = robot1_cubes[cube].pose.Position
+        cube2_position: cozmo.util.Position = robot2_cubes[cube].pose.Position
 
-        for position in range(len(cube1_position)):
-            # set robot 2's base condition to true if one of robot 1's cube's is in its base
-            if cube1_position[position] <= origin_boundary[position] or cube1_position[position] >= 0:
-                robot2_cond = True
+        # TODO: make the boundary a box (0, 0) ... (300, 300)
+        # iterate through the x, y, and z coordinates of the Position of the cubes
+        for i, _ in enumerate(cube1_position.x_y_z):
+            if i == 0:
+                # set robot 2's base condition to true if one of robot 1's cube's is in its base
+                if cube1_position.x <= origin_boundary[i] or cube1_position.x >= 0:
+                    robot2_cond = True
 
-            # set robot 1's base condition to true if one of robot 2's cube's is in its base
-            if cube2_position[position] <= origin_boundary[position] or cube2_position[position] >= 0:
-                robot1_cond = True
+                # set robot 1's base condition to true if one of robot 2's cube's is in its base
+                if cube2_position.x <= origin_boundary[i] or cube2_position.x >= 0:
+                    robot1_cond = True
+            elif i == 1:
+                if cube1_position.y <= origin_boundary[i] or cube1_position.y >= 0:
+                    robot2_cond = True
+
+                if cube2_position.y <= origin_boundary.[i] or cube2_position.y >= 0:
+                    robot1_cond = True
+            else:
+                if cube1_position.z <= origin_boundary[i] or cube1_position.z >= 0:
+                    robot2_cond = True
+
+                if cube2_position.z <= origin_boundary.[i] or cube2_position.z >= 0:
+                    robot1_cond = True
 
     return robot1_cond, robot2_cond
 
 
-def reset(robot_cubes: List[int], robot: cozmo.robot.Robot):
+def reset(robot_cubes: List[LightCube], robot: cozmo.robot.Robot):
     """
     Reset the game state so that we allow the user to re-hide their cubes and them continue playing.
 
