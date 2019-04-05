@@ -2,11 +2,10 @@
 Authors: Matthew Dargan, Daniel Stutz
 """
 
-from typing import List, Tuple
-from itertools import permutations
 import multiprocessing
 import platform
 import time
+from typing import List
 
 import cozmo
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, LightCube
@@ -83,18 +82,10 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     robot1_origin: cozmo.util.Pose = robot1.pose
     robot2_origin: cozmo.util.Pose = robot2.pose
 
-    # TODO: use robot origins to set their own boundaries with x, y + 300 as the max coordinates
-
-    # set the capture boundaries for stealing an opponent's cubes with coordinates forming a box
-    perm = permutations([0, 300, 0, 300], 2)
-    origin_boundaries: List[Tuple[int]] = list(set(perm))
-
     print("Start playing!")
 
     # allow the users to start controlling the robots here
     if get_platform() == 'Windows':
-        # TODO: figure out whether we want one thread or separate threads for the controller states
-        #  for the different robots
         multiprocessing.Process(target=xbox_controller.cozmo_program(robot1)).start()
         multiprocessing.Process(target=xbox_controller.cozmo_program(robot2)).start()
     else:
@@ -105,21 +96,35 @@ async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     robot1_score: int = 0
     robot2_score: int = 0
 
+    # previous lists of the cube statuses for each of the robots
+    robot1_prev_statuses: List[bool] = [False for _ in range(num_cubes)]
+    robot2_prev_statuses: List[bool] = [False for _ in range(num_cubes)]
+
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
         # get the current statuses for whether a new cube of the opponent is in the user's base
-        # TODO: possibly fix is_in_base to be relative to each robot's positions
-        (robot1_acquire_status, robot2_acquire_status) = is_in_base(robot1_cubes, robot2_cubes, origin_boundary)
+        robot1_acquire_statuses: List[bool] = is_in_base(robot2_cubes, robot1_origin.position)
+        robot2_acquire_statuses: List[bool] = is_in_base(robot1_cubes, robot2_origin.position)
 
         # if a user has acquired one of the opponent's cubes then increment their score
-        if robot1_acquire_status:
-            robot1_score += 1
-        if robot2_acquire_status:
-            robot2_score += 1
+        for difference in check_status_differences(robot1_prev_statuses, robot1_acquire_statuses):
+            if difference == 1 or difference == -1:
+                robot1_score += 1
+
+                # update previous lists
+                robot1_prev_statuses = robot1_acquire_statuses
+
+        for difference in check_status_differences(robot2_prev_statuses, robot2_acquire_statuses):
+            if difference == 1 or difference == -1:
+                robot2_score += 1
+
+                # update previous lists
+                robot2_prev_statuses = robot2_acquire_statuses
 
         # if all of the cubes have already been found, let the users reset the locations and then resume playing
         if robot1_score % num_cubes == 0:
             reset(robot2_cubes, robot2)
+
         if robot2_score % num_cubes == 0:
             reset(robot1_cubes, robot1)
 
@@ -138,44 +143,38 @@ def get_platform() -> str:
         return 'Linux'
 
 
-def is_in_base(robot1_cubes: List[LightCube], robot2_cubes: List[LightCube], origin_boundaries: List[Tuple[int]]) -> Tuple[bool, bool]:
+def is_in_base(robot_cubes: List[LightCube], base_boundaries: cozmo.util.Position) -> List[bool]:
     """
-    Check the location of the cube relative to an opponent's base.
+    Check the location of the cubes relative to an opponent's base.
 
-    :return: a conditional tuple containing the cube acquirement statuses for robot1 and robot2
+    :return: a list of booleans corresponding to the cube acquirement statuses for a robot
     """
-    robot1_cond: bool = False  # if a cube is in robot 1's base
-    robot2_cond: bool = False  # if a cube is in robot 2's base
+    robot_cond: List[bool] = [False for _ in range(len(robot_cubes))]
 
-    for cube in range(len(robot1_cubes)):
-        cube1_position: cozmo.util.Position = robot1_cubes[cube].pose.Position
-        cube2_position: cozmo.util.Position = robot2_cubes[cube].pose.Position
+    for cube in range(len(robot_cubes)):
+        cube_position: cozmo.util.Position = robot_cubes[cube].pose.Position
 
-        # TODO: make the boundary a box (0, 0) ... (300, 300)
-        # iterate through the x, y, and z coordinates of the Position of the cubes
-        for i, _ in enumerate(cube1_position.x_y_z):
-            if i == 0:
-                # set robot 2's base condition to true if one of robot 1's cube's is in its base
-                if cube1_position.x <= origin_boundary[i] or cube1_position.x >= 0:
-                    robot2_cond = True
+        if 0 <= cube_position.x <= base_boundaries.x + 300 and 0 <= cube_position.y <= base_boundaries.y + 300:
+            robot_cond[cube] = True
 
-                # set robot 1's base condition to true if one of robot 2's cube's is in its base
-                if cube2_position.x <= origin_boundary[i] or cube2_position.x >= 0:
-                    robot1_cond = True
-            elif i == 1:
-                if cube1_position.y <= origin_boundary[i] or cube1_position.y >= 0:
-                    robot2_cond = True
+    return robot_cond
 
-                if cube2_position.y <= origin_boundary.[i] or cube2_position.y >= 0:
-                    robot1_cond = True
-            else:
-                if cube1_position.z <= origin_boundary[i] or cube1_position.z >= 0:
-                    robot2_cond = True
 
-                if cube2_position.z <= origin_boundary.[i] or cube2_position.z >= 0:
-                    robot1_cond = True
+def check_status_differences(list1: List[bool], list2: List[bool]) -> List[int]:
+    """
+    Check the differences between two boolean lists that contain the current statuses of cube positions
+    relative to an opponent's base.
 
-    return robot1_cond, robot2_cond
+    :param list1: first cube status list
+    :param list2: second cube status list
+    :return: a list of integers containing either 1s or -1s which represent differences or 0s which means no change
+    """
+    results: List[int] = []
+
+    for i in range(len(list1)):
+        results.append(list1[i] - list2[i])
+
+    return results
 
 
 def reset(robot_cubes: List[LightCube], robot: cozmo.robot.Robot):
