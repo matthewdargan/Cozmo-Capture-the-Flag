@@ -85,7 +85,7 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     print("Start playing!")
 
     # allow the users to start controlling the robots here
-    if get_platform() == 'Windows':
+    if platform.system() == 'Windows':
         multiprocessing.Process(target=xbox_controller.cozmo_program(robot1)).start()
         multiprocessing.Process(target=xbox_controller.cozmo_program(robot2)).start()
     else:
@@ -127,20 +127,6 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
 
         if robot2_score % num_cubes == 0:
             reset(robot1_cubes, robot1)
-
-
-def get_platform() -> str:
-    """
-    Get the operating system that the user is on so we call the correct xbox controller functionality script.
-
-    :return: a string containing the operating system that the user is on
-    """
-    if platform.system() == 'Windows':
-        # run xbox_controller script asynchronously
-        return 'Windows'
-    else:
-        # run cozmo_interface asynchronously
-        return 'Linux'
 
 
 def is_in_base(robot_cubes: List[LightCube], base_boundaries: cozmo.util.Position) -> List[bool]:
