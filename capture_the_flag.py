@@ -110,6 +110,7 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
         for difference in check_status_differences(robot1_prev_statuses, robot1_acquire_statuses):
             if difference == 1 or difference == -1:
                 robot1_score += 1
+                print("Robot 1 scored!")
 
                 # update previous lists
                 robot1_prev_statuses = robot1_acquire_statuses
@@ -117,6 +118,7 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
         for difference in check_status_differences(robot2_prev_statuses, robot2_acquire_statuses):
             if difference == 1 or difference == -1:
                 robot2_score += 1
+                print("Robot 2 scored!")
 
                 # update previous lists
                 robot2_prev_statuses = robot2_acquire_statuses
