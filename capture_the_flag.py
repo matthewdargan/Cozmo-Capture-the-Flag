@@ -14,7 +14,7 @@ from linux_tools import cozmo_interface
 from windows_tools import xbox_controller
 
 
-async def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
+def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
     """
     Main entry point for running the logic for the capture the flag game.
 
