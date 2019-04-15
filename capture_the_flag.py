@@ -52,6 +52,10 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
         else:
             break
 
+    # send the start message to the network
+    connection = start_connection("10.0.1.10", 5000)
+    send_message("Start", connection)
+
     # setup the game
     connection, robot_cubes, robot_origin = setup(robot, cube_color)
 
@@ -66,11 +70,22 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
         # recieve the other player's cube locations and use is_in_base to compare positions for scoring purposes
-        
+        messages = recieve_message(connection)
+
+        # TODO: find zip function to unpack into tuples
+        robot2_coordinates = [float(coordinate) for i, coordinate in messages if i is not 0]
+
+        # unpack robot 1's coordinates to check them against robot 2's origin
+        robot1_coordinates = []
+        for cube in range(len(robot_cubes)):
+            cube_position: cozmo.util.Position = robot_cubes[cube].pose.Position
+            robot1_coordinates.append((cube_position.x, cube_position.y))
 
         # get the current statuses for whether a new cube of the opponent is in the user's base
-        robot1_acquire_statuses: List[bool] = is_in_base(robot2_cubes, robot1_origin.position)
-        robot2_acquire_statuses: List[bool] = is_in_base(robot1_cubes, robot2_origin.position)
+        robot1_acquire_statuses: List[bool] = is_in_base(robot2_coordinates, robot1_origin.position)
+
+        # TODO: fix robot 2 origin
+        robot2_acquire_statuses: List[bool] = is_in_base(robot1_coordinates, robot2_origin.position)
 
         # if a user has acquired one of the opponent's cubes then increment their score
         for difference in check_status_differences(robot1_prev_statuses, robot1_acquire_statuses):
@@ -125,7 +140,7 @@ def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
 
     start_message = recieve_message()
 
-    while start_message[0][0] is not 'Start'
+    while start_message[0][0] is not 'Start':
         start_message = recieve_message()
 
     # start the game once the master computer sends out the start message over the network
@@ -148,7 +163,7 @@ def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     return connection, robot_cubes, robot_origin
 
 
-def is_in_base(robot_cubes: List[LightCube], base_boundaries: cozmo.util.Position) -> List[bool]:
+def is_in_base(robot_coordinates: List[float], base_boundaries: cozmo.util.Position) -> List[bool]:
     """
     Check the location of the cubes relative to an opponent's base.
 
@@ -156,10 +171,8 @@ def is_in_base(robot_cubes: List[LightCube], base_boundaries: cozmo.util.Positio
     """
     robot_cond: List[bool] = [False for _ in range(len(robot_cubes))]
 
-    for cube in range(len(robot_cubes)):
-        cube_position: cozmo.util.Position = robot_cubes[cube].pose.Position
-
-        if 0 <= cube_position.x <= base_boundaries.x + 300 and 0 <= cube_position.y <= base_boundaries.y + 300:
+    for coordinate in robot_coordinates:
+        if 0 <= coordinate.0 <= base_boundaries.x + 300 and 0 <= coordinate.1 <= base_boundaries.y + 300:
             robot_cond[cube] = True
 
     return robot_cond
