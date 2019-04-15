@@ -6,6 +6,7 @@ import multiprocessing
 import platform
 import time
 from typing import List
+from message_forwarder import start_connection, recieve_message
 
 import cozmo
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, LightCube
@@ -14,13 +15,12 @@ from linux_tools import cozmo_interface
 from windows_tools import xbox_controller
 
 
-def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
+def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     """
     Main entry point for running the logic for the capture the flag game.
 
     TODO: abstract this out so its a list of up to 4 robots
-    :param robot1: first robot in the game
-    :param robot2: second robot in the game
+    :param robot: main robot in the game
     """
 
     # get the number of cubes the users want to play with in the game
@@ -38,28 +38,7 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
             continue
         else:
             break
-
-    # lists for storing robot1's and robot2's cubes
-    robot1_cubes: List[LightCube] = []
-    robot2_cubes: List[LightCube] = []
-
-    # add the cubes to their respective lists
-    for cube_num in range(num_cubes):
-        if cube_num == 1:
-            robot1_cubes.append(robot1.world.get_light_cube(LightCube1Id))
-            robot2_cubes.append(robot2.world.get_light_cube(LightCube1Id))
-        elif cube_num == 2:
-            robot1_cubes.append(robot1.world.get_light_cube(LightCube2Id))
-            robot2_cubes.append(robot2.world.get_light_cube(LightCube2Id))
-        else:
-            robot1_cubes.append(robot1.world.get_light_cube(LightCube3Id))
-            robot2_cubes.append(robot2.world.get_light_cube(LightCube3Id))
-
-    # set the colors for robot1's cubes to blue and robot2's to red
-    for cube in range(len(robot1_cubes)):
-        robot1_cubes[cube].set_lights(cozmo.lights.blue_light)
-        robot2_cubes[cube].set_lights(cozmo.lights.red_light)
-
+    
     # get the value for the maximum score in the game from the users
     while True:
         try:
@@ -73,24 +52,8 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
         else:
             break
 
-    print("Set Cozmo's in position to play.")
-
-    # give a 10 second period for the users to set their robots in their bases and hide their cubes
-    time.sleep(10)
-
-    # get robot1's and robot2's origins
-    robot1_origin: cozmo.util.Pose = robot1.pose
-    robot2_origin: cozmo.util.Pose = robot2.pose
-
-    print("Start playing!")
-
-    # allow the users to start controlling the robots here
-    if platform.system() == 'Windows':
-        multiprocessing.Process(target=xbox_controller.cozmo_program(robot1)).start()
-        multiprocessing.Process(target=xbox_controller.cozmo_program(robot2)).start()
-    else:
-        multiprocessing.Process(target=cozmo_interface.cozmo_program(robot1)).start()
-        multiprocessing.Process(target=cozmo_interface.cozmo_program(robot2)).start()
+    # setup the game
+    connection, robot_cubes, robot_origin = setup(robot, cube_color)
 
     # set default scores for each side
     robot1_score: int = 0
@@ -102,6 +65,9 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
 
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
+        # recieve the other player's cube locations and use is_in_base to compare positions for scoring purposes
+        
+
         # get the current statuses for whether a new cube of the opponent is in the user's base
         robot1_acquire_statuses: List[bool] = is_in_base(robot2_cubes, robot1_origin.position)
         robot2_acquire_statuses: List[bool] = is_in_base(robot1_cubes, robot2_origin.position)
@@ -129,6 +95,57 @@ def cozmo_program(robot1: cozmo.robot.Robot, robot2: cozmo.robot.Robot):
 
         if robot2_score % num_cubes == 0:
             reset(robot1_cubes, robot1)
+
+
+def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
+    """
+    Setup up the cozmo program to run for each computer to use.
+
+    :param: robot robot to get cubes for
+    """
+
+    # set up network connection to send cube positions over between computers
+    connection = start_connection("10.0.1.10", 5000)
+
+    # lists for storing robot1's and robot2's cubes
+    robot_cubes: List[LightCube] = []
+
+    # add the cubes to their respective lists
+    for cube_num in range(num_cubes):
+        if cube_num == 1:
+            robot_cubes.append(robot.world.get_light_cube(LightCube1Id))
+        elif cube_num == 2:
+            robot_cubes.append(robot.world.get_light_cube(LightCube2Id))
+        else:
+            robot_cubes.append(robot.world.get_light_cube(LightCube3Id))
+
+    # set the colors for robot1's cubes to blue and robot2's to red
+    for cube in range(len(robot_cubes)):
+        robot_cubes[cube].set_lights(cube_color)
+
+    start_message = recieve_message()
+
+    while start_message[0][0] is not 'Start'
+        start_message = recieve_message()
+
+    # start the game once the master computer sends out the start message over the network
+    print("Set Cozmo's in position to play.")
+
+    # give a 10 second period for the users to set their robots in their bases and hide their cubes
+    time.sleep(10)
+
+    # get robot1's and robot2's origins
+    robot_origin: cozmo.util.Pose = robot.pose
+
+    print("Start playing!")
+
+    # allow the users to start controlling the robots here
+    if platform.system() == 'Windows':
+        multiprocessing.Process(target=xbox_controller.cozmo_program(robot)).start()
+    else:
+        multiprocessing.Process(target=cozmo_interface.cozmo_program(robot)).start()
+
+    return connection, robot_cubes, robot_origin
 
 
 def is_in_base(robot_cubes: List[LightCube], base_boundaries: cozmo.util.Position) -> List[bool]:
