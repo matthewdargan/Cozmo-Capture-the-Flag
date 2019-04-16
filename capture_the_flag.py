@@ -4,14 +4,15 @@ Authors: Matthew Dargan, Daniel Stutz
 
 import multiprocessing
 import platform
+import socket
 import time
-from typing import List
-from message_forwarder import start_connection, recieve_message
+from typing import List, Tuple
 
 import cozmo
 from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, LightCube
 
 from linux_tools import cozmo_interface
+from message_forwarder import start_connection, receive_message
 from windows_tools import xbox_controller
 
 
@@ -21,6 +22,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
 
     TODO: abstract this out so its a list of up to 4 robots
     :param robot: main robot in the game
+    :param cube_color color for this team's cubes
     """
 
     # get the number of cubes the users want to play with in the game
@@ -38,7 +40,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
             continue
         else:
             break
-    
+
     # get the value for the maximum score in the game from the users
     while True:
         try:
@@ -54,10 +56,17 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
 
     # send the start message to the network
     connection = start_connection("10.0.1.10", 5000)
-    send_message("Start", connection)
+    connection.send(b'Start')
 
     # setup the game
-    connection, robot_cubes, robot_origin = setup(robot, cube_color)
+    connection, robot_cubes, robot_origin = setup(robot, num_cubes, cube_color)
+
+    # reformat robot 1's origin
+    robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
+
+    # get robot 2's origin
+    origin_message = receive_message(connection)
+    robot2_origin = (float(origin_message[0][1]), float(origin_message[0][2]))
 
     # set default scores for each side
     robot1_score: int = 0
@@ -69,11 +78,13 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
 
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
-        # recieve the other player's cube locations and use is_in_base to compare positions for scoring purposes
-        messages = recieve_message(connection)
+        # receive the other player's cube locations and use is_in_base to compare positions for scoring purposes
+        messages = receive_message(connection)
 
-        # TODO: find zip function to unpack into tuples
-        robot2_coordinates = [float(coordinate) for i, coordinate in messages if i is not 0]
+        # unpack robot 2's coordinates from the network message
+        robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages[1:]) if i % 2 is not 0]
+        robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages[1:]) if i % 2 is 0]
+        robot2_coordinates: List[Tuple[float, float]] = list(zip(robot2_x_coordinates, robot2_y_coordinates))
 
         # unpack robot 1's coordinates to check them against robot 2's origin
         robot1_coordinates = []
@@ -82,10 +93,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
             robot1_coordinates.append((cube_position.x, cube_position.y))
 
         # get the current statuses for whether a new cube of the opponent is in the user's base
-        robot1_acquire_statuses: List[bool] = is_in_base(robot2_coordinates, robot1_origin.position)
-
-        # TODO: fix robot 2 origin
-        robot2_acquire_statuses: List[bool] = is_in_base(robot1_coordinates, robot2_origin.position)
+        robot1_acquire_statuses: List[bool] = is_in_base(robot2_coordinates, robot_origin)
+        robot2_acquire_statuses: List[bool] = is_in_base(robot1_coordinates, robot2_origin)
 
         # if a user has acquired one of the opponent's cubes then increment their score
         for difference in check_status_differences(robot1_prev_statuses, robot1_acquire_statuses):
@@ -106,17 +115,23 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
 
         # if all of the cubes have already been found, let the users reset the locations and then resume playing
         if robot1_score % num_cubes == 0:
-            reset(robot2_cubes, robot2)
+            # send the reset message over the network to the slave computer so it knows to reset robot 2's coordinates
+            connection.send(b'Reset')
+            time.sleep(0.5)
 
         if robot2_score % num_cubes == 0:
-            reset(robot1_cubes, robot1)
+            reset(robot_cubes, robot)
 
 
-def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
+def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Light) -> (socket.socket,
+                                                                                        List[LightCube],
+                                                                                        cozmo.util.Pose):
     """
     Setup up the cozmo program to run for each computer to use.
 
-    :param: robot robot to get cubes for
+    :param robot robot to get cubes for
+    :param num_cubes number of cubes we are playing with
+    :param cube_color color of this team's cubes
     """
 
     # set up network connection to send cube positions over between computers
@@ -138,10 +153,10 @@ def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     for cube in range(len(robot_cubes)):
         robot_cubes[cube].set_lights(cube_color)
 
-    start_message = recieve_message()
+    start_message = receive_message(connection)
 
     while start_message[0][0] is not 'Start':
-        start_message = recieve_message()
+        start_message = receive_message(connection)
 
     # start the game once the master computer sends out the start message over the network
     print("Set Cozmo's in position to play.")
@@ -163,17 +178,19 @@ def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     return connection, robot_cubes, robot_origin
 
 
-def is_in_base(robot_coordinates: List[float], base_boundaries: cozmo.util.Position) -> List[bool]:
+def is_in_base(robot_coordinates: List[Tuple[float, float]], base_boundaries: Tuple[float, float]) -> List[bool]:
     """
     Check the location of the cubes relative to an opponent's base.
 
+    :param robot_coordinates coordinates for a robot's cubes
+    :param base_boundaries the boundaries for a robot's base to see if someone scored
     :return: a list of booleans corresponding to the cube acquirement statuses for a robot
     """
-    robot_cond: List[bool] = [False for _ in range(len(robot_cubes))]
+    robot_cond: List[bool] = [False for _ in range(len(robot_coordinates))]
 
-    for coordinate in robot_coordinates:
-        if 0 <= coordinate.0 <= base_boundaries.x + 300 and 0 <= coordinate.1 <= base_boundaries.y + 300:
-            robot_cond[cube] = True
+    for i, coordinate in enumerate(robot_coordinates):
+        if 0 <= coordinate[0] <= base_boundaries[0] + 300 and 0 <= coordinate[1] <= base_boundaries[1] + 300:
+            robot_cond[i] = True
 
     return robot_cond
 
