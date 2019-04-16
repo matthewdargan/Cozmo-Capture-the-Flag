@@ -2,19 +2,13 @@
 Authors: Matthew Dargan, Daniel Stutz
 """
 
-import multiprocessing
-import platform
-import socket
 import time
 from typing import List, Tuple
 
 import cozmo
-from cozmo.objects import LightCube1Id, LightCube2Id, LightCube3Id, LightCube
 
-from linux_tools import cozmo_interface
-from message_forwarder import start_connection, receive_message
-from windows_tools import xbox_controller
 from capture_the_flag_functionality import setup, reset
+from message_forwarder import start_connection, receive_message
 
 
 def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
