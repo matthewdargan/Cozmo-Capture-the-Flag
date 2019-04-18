@@ -1,7 +1,7 @@
 """Capture the Flag game mode for cozmo
 Authors: Matthew Dargan, Daniel Stutz
 """
-
+import socket
 import time
 from typing import List, Tuple
 
@@ -49,8 +49,9 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
         else:
             break
 
-    # send the start message to the network
-    connection = start_connection("10.0.1.10", 5000)
+    # send the start message to the network and the number of cubes the slave computers should use
+    connection: socket.socket = start_connection("10.0.1.10", 5000)
+    connection.send(b'num_cubes', num_cubes)
     connection.send(b'Start')
 
     # setup the game
@@ -60,8 +61,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
 
     # get robot 2's origin
-    origin_message = receive_message(connection)
-    robot2_origin = (float(origin_message[0][1]), float(origin_message[0][2]))
+    origin_message: List[List[str]] = receive_message(connection)
+    robot2_origin: Tuple[float, float] = (float(origin_message[0][1]), float(origin_message[0][2]))
 
     # set default scores for each side
     robot1_score: int = 0
@@ -74,7 +75,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
         # receive the other player's cube locations and use is_in_base to compare positions for scoring purposes
-        messages = receive_message(connection)
+        messages: List[List[str]] = receive_message(connection)
 
         # unpack robot 2's coordinates from the network message
         robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages[1:]) if i % 2 is not 0]
@@ -82,7 +83,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
         robot2_coordinates: List[Tuple[float, float]] = list(zip(robot2_x_coordinates, robot2_y_coordinates))
 
         # unpack robot 1's coordinates to check them against robot 2's origin
-        robot1_coordinates = []
+        robot1_coordinates: List[Tuple[float, float]] = []
         for cube in range(len(robot_cubes)):
             cube_position: cozmo.util.Position = robot_cubes[cube].pose.Position
             robot1_coordinates.append((cube_position.x, cube_position.y))
@@ -111,11 +112,21 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
         # if all of the cubes have already been found, let the users reset the locations and then resume playing
         if robot1_score % num_cubes == 0:
             # send the reset message over the network to the slave computer so it knows to reset robot 2's coordinates
-            connection.send(b'Reset')
-            time.sleep(0.5)
+            connection.send(b'Resetting')
+            time.sleep(15)
 
         if robot2_score % num_cubes == 0:
+            connection.send(b'Reset')
             reset(robot_cubes, robot)
+
+    # someone won the game, make the slave computers exit execution
+    connection.send(b'Exit')
+
+    # print the win state
+    if robot1_score == max_score:
+        print('Robot 1 won!')
+    else:
+        print('Robot 2 won!')
 
 
 def is_in_base(robot_coordinates: List[Tuple[float, float]], base_boundaries: Tuple[float, float]) -> List[bool]:
