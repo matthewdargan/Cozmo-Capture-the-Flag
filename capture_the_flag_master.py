@@ -111,11 +111,12 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
 
         # if all of the cubes have already been found, let the users reset the locations and then resume playing
         if robot1_score % num_cubes == 0:
-            # send the reset message over the network to the slave computer so it knows to reset robot 2's coordinates
+            # send the reset message over the network to make robot 2 reset its coordinates
             connection.send(b'Resetting')
             time.sleep(15)
 
         if robot2_score % num_cubes == 0:
+            # send the reset message over the network to make the slave computer's thread sleep
             connection.send(b'Reset')
             reset(robot_cubes, robot)
 
