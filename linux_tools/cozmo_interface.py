@@ -5,7 +5,7 @@ Authors: Matthew Dargan, Daniel Stutz
 import cozmo
 from cozmo.util import radians
 
-import xbox
+from linux_tools import xbox
 from colors import Colors
 
 

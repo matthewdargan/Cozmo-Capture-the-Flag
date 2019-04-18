@@ -1,4 +1,4 @@
-from xinput import *
+from windows_tools.xinput import *
 import cozmo
 from math import *
 
@@ -113,7 +113,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     while True:
         state = joystick.get_state()
-        print(state)
+        # print(state)
         check_controller_state(robot, state)
         time.sleep(.01)
 
