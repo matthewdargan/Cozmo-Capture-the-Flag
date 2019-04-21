@@ -48,8 +48,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
         cube2_pos = robot_cubes[1].pose.Position
         cube3_pos = robot_cubes[2].pose.Position
 
-        connection.send(b'Robot2, cube1_pos.x, cube1_pos.y, cube2_pos.x, cube2_pos.y, cube3_pos.x, cube3_pos.y',
-                        cube1_pos.x, cube1_pos.y, cube2_pos.x, cube2_pos.y, cube3_pos.x, cube3_pos.y)
+        connection.send(b'Robot2, %f, %f, %f, %f, %f, %f'
+                        % (cube1_pos.x, cube1_pos.y, cube2_pos.x, cube2_pos.y, cube3_pos.x, cube3_pos.y))
         new_message = receive_message(connection)
 
     # exit the game, someone won the game
