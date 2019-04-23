@@ -11,7 +11,7 @@ from capture_the_flag_functionality import setup, reset
 from message_forwarder import start_connection, receive_message
 
 
-def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light):
+def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.blue_light):
     """
     Main entry point for running the logic for the capture the flag game.
 
