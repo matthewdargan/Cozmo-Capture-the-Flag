@@ -51,7 +51,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
 
     # send the start message to the network and the number of cubes the slave computers should use
     connection: socket.socket = start_connection("10.0.1.10", 5000)
-    connection.send(b'num_cubes', num_cubes)
+    connection.send(b'%d' % num_cubes)
     connection.send(b'Start')
 
     # setup the game
