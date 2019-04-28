@@ -47,5 +47,6 @@ def receive_message(connection: socket.socket) -> List[List[str]]:
         else:
             words = data.split(' ')
             messages.append(words)
+            cont = False
 
     return messages

@@ -62,7 +62,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
 
     # get robot 2's origin
     origin_message: List[List[str]] = receive_message(connection)
-    robot2_origin: Tuple[float, float] = (float(origin_message[0][1]), float(origin_message[0][2]))
+    robot2_origin: Tuple[float, float] = (float(origin_message[0][0]), float(origin_message[0][1]))
 
     # set default scores for each side
     robot1_score: int = 0

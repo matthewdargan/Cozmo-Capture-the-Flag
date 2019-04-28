@@ -1,6 +1,5 @@
 import socket
 import time
-from typing import List
 
 import cozmo
 
@@ -23,18 +22,24 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     # get the number of cubes that should be connected to the secondary robot
     num_cubes: int = int(receive_message(connection)[0][0])
 
-    start_message: List[List[str]] = receive_message(connection)
-
-    # wait for the start message on the network
-    while 'Start' not in start_message:
-        start_message = receive_message(connection)
-
     # setup the game
-    connection, robot_cubes, robot_origin = setup(robot, num_cubes, cube_color)
+    robot_cubes, robot_origin = setup(robot, num_cubes, cube_color, connection)
 
-    new_message = receive_message(connection)
+    # get the cube positions
+    cube1_pos = robot_cubes[0].pose
+    cube2_pos = robot_cubes[1].pose
+    cube3_pos = robot_cubes[2].pose
+
+    # send cube locations
+    connection.send(b'%f %f %f %f %f %f'
+                    % (cube1_pos.position.x, cube1_pos.position.y, cube2_pos.position.x, cube2_pos.position.y,
+                       cube3_pos.position.x, cube3_pos.position.y))
+
+    # default the message from master as None
+    new_message = []
 
     while 'Exit' not in new_message:
+        print(new_message)
         # sleep for 15 seconds if the main robot needs to reset
         if 'Reset' in new_message:
             time.sleep(15)
@@ -44,12 +49,14 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
             reset(robot_cubes, robot)
 
         # run normally by sending the cube positions out constantly to the network
-        cube1_pos = robot_cubes[0].pose.Position
-        cube2_pos = robot_cubes[1].pose.Position
-        cube3_pos = robot_cubes[2].pose.Position
+        cube1_pos = robot_cubes[0].pose
+        cube2_pos = robot_cubes[1].pose
+        cube3_pos = robot_cubes[2].pose
 
-        connection.send(b'Robot2, %f, %f, %f, %f, %f, %f'
-                        % (cube1_pos.x, cube1_pos.y, cube2_pos.x, cube2_pos.y, cube3_pos.x, cube3_pos.y))
+        connection.send(b'%f %f %f %f %f %f'
+                        % (cube1_pos.position.x, cube1_pos.position.y, cube2_pos.position.x, cube2_pos.position.y,
+                           cube3_pos.position.x, cube3_pos.position.y))
+
         new_message = receive_message(connection)
 
     # exit the game, someone won the game

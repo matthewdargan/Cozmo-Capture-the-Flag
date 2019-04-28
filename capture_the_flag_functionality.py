@@ -8,23 +8,21 @@ import cozmo
 from cozmo.objects import LightCube, LightCube1Id, LightCube2Id, LightCube3Id
 
 from linux_tools import cozmo_interface
-from message_forwarder import start_connection, receive_message
 from windows_tools import xbox_controller
 
 
-def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Light) -> (socket.socket,
-                                                                                        List[LightCube],
-                                                                                        cozmo.util.Pose):
+def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Light, connection: socket.socket) -> (
+        socket.socket,
+        List[LightCube],
+        cozmo.util.Pose):
     """
     Setup up the cozmo program to run for each computer to use.
 
     :param robot robot to get cubes for
     :param num_cubes number of cubes we are playing with
     :param cube_color color of this team's cubes
+    :param connection connection to the network
     """
-
-    # set up network connection to send cube positions over between computers
-    connection = start_connection("10.0.1.10", 5000)
 
     # lists for storing robot1's and robot2's cubes
     robot_cubes: List[LightCube] = []
@@ -41,11 +39,6 @@ def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Lig
     # set the colors for robot1's cubes to blue and robot2's to red
     for cube in range(len(robot_cubes)):
         robot_cubes[cube].set_lights(cube_color)
-
-    start_message = receive_message(connection)
-
-    while start_message[0][0] is not 'Start':
-        start_message = receive_message(connection)
 
     # start the game once the master computer sends out the start message over the network
     print("Set Cozmo's in position to play.")
@@ -64,7 +57,7 @@ def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Lig
     else:
         multiprocessing.Process(target=cozmo_interface.cozmo_program(robot)).start()
 
-    return connection, robot_cubes, robot_origin
+    return robot_cubes, robot_origin
 
 
 def reset(robot_cubes: List[LightCube], robot: cozmo.robot.Robot):
