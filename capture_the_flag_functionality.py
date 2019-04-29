@@ -7,8 +7,8 @@ from typing import List
 import cozmo
 from cozmo.objects import LightCube, LightCube1Id, LightCube2Id, LightCube3Id
 
-from linux_tools import cozmo_interface
-from windows_tools import xbox_controller
+#from linux_tools import cozmo_interface
+#from windows_tools import xbox_controller
 
 
 def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Light, connection: socket.socket) -> (
@@ -52,10 +52,10 @@ def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Lig
     print("Start playing!")
 
     # allow the users to start controlling the robots here
-    if platform.system() == 'Windows':
-        multiprocessing.Process(target=xbox_controller.cozmo_program(robot)).start()
-    else:
-        multiprocessing.Process(target=cozmo_interface.cozmo_program(robot)).start()
+    #if platform.system() == 'Windows':
+    #    multiprocessing.Process(target=xbox_controller.cozmo_program(robot)).start()
+    #else:
+    #    multiprocessing.Process(target=cozmo_interface.cozmo_program(robot)).start()
 
     return robot_cubes, robot_origin
 
