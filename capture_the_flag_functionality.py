@@ -66,9 +66,6 @@ def reset(robot_cubes: List[LightCube], robot: cozmo.robot.Robot):
     :param robot: one of the current robots in the game
     """
 
-    # TODO: have the robots themselves reset the cubes, add error handling to make sure the cubes are not still
-    #       in an opponent's base in case they do not reset the locations of the cubes in time
-
     # timeout the game for 15 seconds so the users have time to re-hide their cubes
     time.sleep(15)
 

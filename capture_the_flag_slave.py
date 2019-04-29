@@ -11,7 +11,6 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     """
     Main entry point for running the slave logic for the capture the flag game.
 
-    TODO: abstract this out so its a list of up to 4 robots
     :param robot: a secondary robot in the game
     :param cube_color color for this team's cubes
     """
