@@ -1,5 +1,3 @@
-import multiprocessing
-import platform
 import socket
 import time
 from typing import List
@@ -7,11 +5,12 @@ from typing import List
 import cozmo
 from cozmo.objects import LightCube, LightCube1Id, LightCube2Id, LightCube3Id
 
-#from linux_tools import cozmo_interface
-#from windows_tools import xbox_controller
+
+# from linux_tools import cozmo_interface
+# from windows_tools import xbox_controller
 
 
-def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Light, connection: socket.socket) -> (
+def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Light) -> (
         socket.socket,
         List[LightCube],
         cozmo.util.Pose):
@@ -21,7 +20,6 @@ def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Lig
     :param robot robot to get cubes for
     :param num_cubes number of cubes we are playing with
     :param cube_color color of this team's cubes
-    :param connection connection to the network
     """
 
     # lists for storing robot1's and robot2's cubes
@@ -52,9 +50,9 @@ def setup(robot: cozmo.robot.Robot, num_cubes: int, cube_color: cozmo.lights.Lig
     print("Start playing!")
 
     # allow the users to start controlling the robots here
-    #if platform.system() == 'Windows':
+    # if platform.system() == 'Windows':
     #    multiprocessing.Process(target=xbox_controller.cozmo_program(robot)).start()
-    #else:
+    # else:
     #    multiprocessing.Process(target=cozmo_interface.cozmo_program(robot)).start()
 
     return robot_cubes, robot_origin

@@ -23,12 +23,12 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     num_cubes: int = int(receive_message(connection)[0][0])
 
     # setup the game
-    robot_cubes, robot_origin = setup(robot, num_cubes, cube_color, connection)
+    robot_cubes, robot_origin = setup(robot, num_cubes, cube_color)
 
     # get the cube positions
     cube1_pos = robot_cubes[0].pose
-    cube2_pos = robot_cubes[1].pose
-    cube3_pos = robot_cubes[2].pose
+    # cube2_pos = robot_cubes[1].pose
+    # cube3_pos = robot_cubes[2].pose
 
     # send cube locations
     connection.send(b'%f %f'
@@ -49,8 +49,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
 
         # run normally by sending the cube positions out constantly to the network
         cube1_pos = robot_cubes[0].pose
-        cube2_pos = robot_cubes[1].pose
-        cube3_pos = robot_cubes[2].pose
+        # cube2_pos = robot_cubes[1].pose
+        # cube3_pos = robot_cubes[2].pose
 
         connection.send(b'%f %f'
                         % (cube1_pos.position.x, cube1_pos.position.y))
