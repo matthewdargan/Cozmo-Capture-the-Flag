@@ -84,8 +84,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         # unpack robot 1's coordinates to check them against robot 2's origin
         robot1_coordinates: List[Tuple[float, float]] = []
         for cube in range(len(robot_cubes)):
-            cube_position: cozmo.util.Position = robot_cubes[cube].pose.Position
-            robot1_coordinates.append((cube_position.x, cube_position.y))
+            cube_pos: cozmo.util.Pose = robot_cubes[cube].pose
+            robot1_coordinates.append((cube_pos.position.x, cube_pos.position.y))
 
         # get the current statuses for whether a new cube of the opponent is in the user's base
         robot1_acquire_statuses: List[bool] = is_in_base(robot2_coordinates, robot_origin)
