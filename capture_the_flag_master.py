@@ -60,8 +60,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
 
     # get robot 2's origin
-    origin_message: List[List[str]] = receive_message(connection)
-    robot2_origin: Tuple[float, float] = (float(origin_message[0][0]), float(origin_message[0][1]))
+    origin_message: List[str] = receive_message(connection)
+    robot2_origin: Tuple[float, float] = (float(origin_message[0]), float(origin_message[1]))
 
     # set default scores for each side
     robot1_score: int = 0
@@ -74,11 +74,11 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
         # receive the other player's cube locations and use is_in_base to compare positions for scoring purposes
-        messages: List[List[str]] = receive_message(connection)
+        messages: List[str] = receive_message(connection)
 
         # unpack robot 2's coordinates from the network message
-        robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages[1:]) if i % 2 is not 0]
-        robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages[1:]) if i % 2 is 0]
+        robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages) if i % 2 is not 0]
+        robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(messages) if i % 2 is 0]
         robot2_coordinates: List[Tuple[float, float]] = list(zip(robot2_x_coordinates, robot2_y_coordinates))
 
         # unpack robot 1's coordinates to check them against robot 2's origin

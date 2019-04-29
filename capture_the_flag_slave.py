@@ -20,7 +20,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     connection: socket.socket = start_connection("10.0.1.10", 5000)
 
     # get the number of cubes that should be connected to the secondary robot
-    num_cubes: int = int(receive_message(connection)[0][0])
+    num_cubes: int = int(receive_message(connection)[0])
 
     # setup the game
     robot_cubes, robot_origin = setup(robot, num_cubes, cube_color)
@@ -31,8 +31,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     # cube3_pos = robot_cubes[2].pose
 
     # send cube locations
-    connection.send(b'%f %f'
-                    % (cube1_pos.position.x, cube1_pos.position.y))
+    connection.send(b'%f %f' % (cube1_pos.position.x, cube1_pos.position.y))
 
     # default the message from master as None
     new_message = []
@@ -52,8 +51,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         # cube2_pos = robot_cubes[1].pose
         # cube3_pos = robot_cubes[2].pose
 
-        connection.send(b'%f %f'
-                        % (cube1_pos.position.x, cube1_pos.position.y))
+        connection.send(b'%f %f' % (cube1_pos.position.x, cube1_pos.position.y))
 
         new_message = receive_message(connection)
 
