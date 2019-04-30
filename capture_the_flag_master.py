@@ -60,7 +60,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     robot2_origin: Tuple[float, float] = (float(origin_message[0]), float(origin_message[1]))
 
     # set robot 1's origin relative to robot 2's origin
-    robot_origin = robot.pose.define_pose_relative_this(cozmo.util.Pose(robot2_origin[0], robot2_origin[1], 0))
+    robot_origin = robot.pose.define_pose_relative_this(cozmo.util.Pose(x=robot2_origin[0], y=robot2_origin[1], z=0))
 
     # set default scores for each side
     robot1_score: int = 0
