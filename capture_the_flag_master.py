@@ -52,15 +52,29 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     connection: socket.socket = start_connection("10.0.1.10", 5000)
     connection.send(b'%d' % num_cubes)
 
+    # set robot 1's origin by estimating the distance between robot 1 and robot 2
+    while True:
+        try:
+            robot_distance: int = int(input("What is the distance between robot 1 and robot 2?\n"
+                                            "(Set the robots to be parallel)"))
+        except ValueError:
+            print("Invalid input type")
+            continue
+        if robot_distance < 0:
+            print("Input must be positive")
+            continue
+        else:
+            break
+
+    robot_origin: cozmo.util.Pose = robot.pose.define_pose_relative_this(cozmo.util.Pose(x=robot_distance, y=0, z=0))
+    robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
+
     # setup the game
     robot_cubes, _ = setup(robot, num_cubes, cube_color)
 
     # get robot 2's origin
     origin_message: List[str] = receive_message(connection)
     robot2_origin: Tuple[float, float] = (float(origin_message[0]), float(origin_message[1]))
-
-    # set robot 1's origin relative to robot 2's origin
-    robot_origin = robot.pose.define_pose_relative_this(cozmo.util.Pose(x=robot2_origin[0], y=robot2_origin[1], z=0))
 
     # set default scores for each side
     robot1_score: int = 0
