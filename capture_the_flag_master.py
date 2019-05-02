@@ -49,6 +49,10 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         else:
             break
 
+    # send the start message to the network and the number of cubes the slave computers should use
+    connection: socket.socket = start_connection("10.0.1.10", 5000)
+    connection.send(b'%d' % num_cubes)
+
     # set robot 1's origin by estimating the distance between robot 1 and robot 2
     while True:
         try:
@@ -68,10 +72,6 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
                                                                    z=0,
                                                                    angle_z=Angle(degrees=0)))
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
-
-    # send the start message to the network and the number of cubes the slave computers should use
-    connection: socket.socket = start_connection("10.0.1.10", 5000)
-    connection.send(b'%d' % num_cubes)
 
     # setup the game
     robot_cubes, _ = setup(robot, num_cubes, cube_color)
