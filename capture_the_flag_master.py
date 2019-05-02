@@ -6,6 +6,7 @@ import time
 from typing import List, Tuple
 
 import cozmo
+from cozmo.util import Angle, Pose
 
 from capture_the_flag_functionality import setup, reset
 from message_forwarder import start_connection, receive_message
@@ -66,10 +67,10 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         else:
             break
 
-    robot_origin: cozmo.util.Pose = robot.pose.define_pose_relative_this(cozmo.util.Pose(x=robot_distance,
-                                                                                         y=0,
-                                                                                         z=0,
-                                                                                         angle_z=0))
+    robot_origin: Pose = robot.pose.define_pose_relative_this(Pose(x=robot_distance,
+                                                                   y=0,
+                                                                   z=0,
+                                                                   angle_z=Angle(degrees=0)))
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
 
     # setup the game
@@ -100,7 +101,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         # unpack robot 1's coordinates to check them against robot 2's origin
         robot1_coordinates: List[Tuple[float, float]] = []
         for cube in range(len(robot_cubes)):
-            cube_pos: cozmo.util.Pose = robot_cubes[cube].pose
+            cube_pos: Pose = robot_cubes[cube].pose
             robot1_coordinates.append((cube_pos.position.x, cube_pos.position.y))
 
         # get the current statuses for whether a new cube of the opponent is in the user's base
