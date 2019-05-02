@@ -55,8 +55,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     # set robot 1's origin by estimating the distance between robot 1 and robot 2
     while True:
         try:
-            robot_distance: int = int(input("What is the distance between robot 1 and robot 2? "
-                                            "(Set the robots to be parallel)"))
+            robot_distance: float = float(input("What is the distance between robot 1 and robot 2? "
+                                                "(Set the robots to be parallel)"))
         except ValueError:
             print("Invalid input type")
             continue
