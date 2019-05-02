@@ -72,8 +72,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
                                                                                          q0=None,
                                                                                          q1=None,
                                                                                          q2=None,
-                                                                                         q3=None,
-                                                                                         angle_z=None))
+                                                                                         q3=None))
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
 
     # setup the game
