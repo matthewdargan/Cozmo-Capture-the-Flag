@@ -55,7 +55,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     # set robot 1's origin by estimating the distance between robot 1 and robot 2
     while True:
         try:
-            robot_distance: int = int(input("What is the distance between robot 1 and robot 2?\n"
+            robot_distance: int = int(input("What is the distance between robot 1 and robot 2? "
                                             "(Set the robots to be parallel)"))
         except ValueError:
             print("Invalid input type")
@@ -66,7 +66,14 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         else:
             break
 
-    robot_origin: cozmo.util.Pose = robot.pose.define_pose_relative_this(cozmo.util.Pose(x=robot_distance, y=0, z=0))
+    robot_origin: cozmo.util.Pose = robot.pose.define_pose_relative_this(cozmo.util.Pose(x=robot_distance,
+                                                                                         y=0,
+                                                                                         z=0,
+                                                                                         q0=None,
+                                                                                         q1=None,
+                                                                                         q2=None,
+                                                                                         q3=None,
+                                                                                         angle_z=None))
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
 
     # setup the game
