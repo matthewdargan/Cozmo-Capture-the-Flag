@@ -3,8 +3,8 @@ import time
 
 import cozmo
 
-from capture_the_flag_functionality import setup, reset
-from message_forwarder import start_connection, receive_message
+from utils.setup import setup
+from utils.message_forwarder import start_connection, receive_message
 
 
 def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.red_light):
