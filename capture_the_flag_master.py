@@ -89,16 +89,16 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     robot1_prev_statuses: List[bool] = [False for _ in range(num_cubes)]
     robot2_prev_statuses: List[bool] = [False for _ in range(num_cubes)]
 
+    # receive the other player's cube locations and use is_in_base to compare positions for scoring purposes
+    coordinates: List[str] = receive_message(connection)
+
+    # unpack robot 2's coordinates from the network message
+    robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is 0]
+    robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is not 0]
+    robot2_coordinates: List[Tuple[float, float]] = list(zip(robot2_x_coordinates, robot2_y_coordinates))
+
     # continuously check the location of the cubes to see if the opponent has captured one of them
     while robot1_score or robot2_score is not max_score:
-        # receive the other player's cube locations and use is_in_base to compare positions for scoring purposes
-        coordinates: List[str] = receive_message(connection)
-
-        # unpack robot 2's coordinates from the network message
-        robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is 0]
-        robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is not 0]
-        robot2_coordinates: List[Tuple[float, float]] = list(zip(robot2_x_coordinates, robot2_y_coordinates))
-
         # unpack robot 1's coordinates to check them against robot 2's origin
         robot1_coordinates: List[Tuple[float, float]] = []
         for cube in range(len(robot_cubes)):
@@ -136,6 +136,12 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
             # send the reset message over the network to make the slave computer's thread sleep
             connection.send(b'Reset')
             reset(robot_cubes, robot)
+
+        # update coordinates and unpack
+        coordinates = receive_message(connection)
+        robot2_x_coordinates = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is 0]
+        robot2_y_coordinates = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is not 0]
+        robot2_coordinates = list(zip(robot2_x_coordinates, robot2_y_coordinates))
 
     # someone won the game, make the slave computers exit execution
     connection.send(b'Exit')
