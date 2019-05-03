@@ -1,60 +1,41 @@
+import multiprocessing
 import socket
-import time
+from sys import platform
+from typing import List
 
 import cozmo
 
-from utils.setup import setup
+from linux_tools import cozmo_interface
 from utils.message_forwarder import start_connection, receive_message
+from windows_tools import xbox_controller
 
 
-def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.red_light):
+def cozmo_program(robot: cozmo.robot.Robot):
     """
     Main entry point for running the slave logic for the capture the flag game.
 
     :param robot: a secondary robot in the game
-    :param cube_color color for this team's cubes
     """
 
-    # setup connection to the network
+    # establish connection to the network and message retrieval
     connection: socket.socket = start_connection("10.0.1.10", 5000)
+    message: List[str] = []
 
-    # get the number of cubes that should be connected to the secondary robot
-    num_cubes: int = int(receive_message(connection)[0])
+    xbox_thread = multiprocessing.Process
 
-    # setup the game
-    robot_cubes, robot_origin = setup(robot, num_cubes, cube_color)
+    # setup controller functionality
+    if platform.system() == 'Windows':
+        xbox_thread = multiprocessing.Process(target=xbox_controller.cozmo_program(robot))
+    else:
+        xbox_thread = multiprocessing.Process(target=cozmo_interface.cozmo_program(robot))
 
-    # send robot 2's origin over the network to calibrate relativity
-    connection.send(b'%f %f' % (abs(robot_origin.position.x), abs(robot_origin.position.y)))
+    xbox_thread.start()
 
-    # get the cube positions
-    cube1_pos = robot_cubes[0].pose
-    # cube2_pos = robot_cubes[1].pose
-    # cube3_pos = robot_cubes[2].pose
+    while 'Exit' not in message:
+        message = receive_message(connection)
 
-    # default the message from master as None
-    new_message = []
-
-    while 'Exit' not in new_message:
-        print(new_message)
-        # sleep for 15 seconds if the main robot needs to reset
-        if 'Reset' in new_message:
-            time.sleep(15)
-
-        # reset this robot
-        elif 'Resetting' in new_message:
-            reset(robot_cubes, robot)
-
-        # run normally by sending the cube positions out constantly to the network
-        cube1_pos = robot_cubes[0].pose
-        # cube2_pos = robot_cubes[1].pose
-        # cube3_pos = robot_cubes[2].pose
-
-        connection.send(b'%f %f' % (abs(cube1_pos.position.x), abs(cube1_pos.position.y)))
-
-        new_message = receive_message(connection)
-
-    # exit the game, someone won the game
+    # shutdown and exit the game, someone won the game
+    xbox_thread.terminate()
     robot.say_text('Game over!')
 
 
