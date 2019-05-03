@@ -49,7 +49,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         else:
             break
 
-    # set robot 1's origin by estimating the distance between robot 1 and robot 2
+    # estimate the distance between robot 1 and robot 2
     while True:
         try:
             robot_distance: float = float(input("What is the distance between robot 1 and robot 2? "
@@ -67,21 +67,19 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     connection: socket.socket = start_connection("10.0.1.10", 5000)
     connection.send(b'%d' % num_cubes)
 
+    # set robot 1's origin
     robot_origin: Pose = robot.pose.define_pose_relative_this(Pose(x=robot_distance,
                                                                    y=0,
                                                                    z=0,
                                                                    angle_z=Angle(degrees=0)))
-
     robot_origin: Tuple[float, float] = (robot_origin.position.x, robot_origin.position.y)
     
     # setup the game
     robot_cubes, _ = setup(robot, num_cubes, cube_color)
 
-
     # get robot 2's origin
     origin_message: List[str] = receive_message(connection)
     robot2_origin: Tuple[float, float] = (float(origin_message[0]), float(origin_message[1]))
-
 
     # set default scores for each side
     robot1_score: int = 0
@@ -97,8 +95,8 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         coordinates: List[str] = receive_message(connection)
 
         # unpack robot 2's coordinates from the network message
-        robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is not 0]
-        robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is 0]
+        robot2_x_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is 0]
+        robot2_y_coordinates: List[float] = [float(coord) for i, coord in enumerate(coordinates) if i % 2 is not 0]
         robot2_coordinates: List[Tuple[float, float]] = list(zip(robot2_x_coordinates, robot2_y_coordinates))
 
         # unpack robot 1's coordinates to check them against robot 2's origin
