@@ -12,7 +12,7 @@ from windows_tools import xbox_controller
 
 def cozmo_program(robot: cozmo.robot.Robot):
     """
-    Main entry point for running the slave logic for the capture the flag game.
+    Main entry point for running the controller logic in the capture the flag game.
 
     :param robot: a secondary robot in the game
     """

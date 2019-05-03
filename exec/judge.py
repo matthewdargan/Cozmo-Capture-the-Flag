@@ -13,7 +13,7 @@ from utils.message_forwarder import start_connection, receive_message
 
 def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.blue_light):
     """
-    Main entry point for running the logic for the capture the flag game.
+    Main entry point for running the scoring logic in the capture the flag game.
 
     :param robot: main robot in the game
     :param cube_color color for this team's cubes
