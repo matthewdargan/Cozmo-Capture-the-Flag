@@ -21,7 +21,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     connection: socket.socket = start_connection("10.0.1.10", 5000)
     message: List[str] = []
 
-    xbox_thread = multiprocessing.Process
+    xbox_thread: multiprocessing.Process = multiprocessing.Process()
 
     # setup controller functionality
     if platform.system() == 'Windows':
