@@ -1,6 +1,8 @@
 from windows_tools.xinput import *
 import cozmo
 from math import *
+from cozmo.objects import *
+from cozmo.util import distance_mm
 
 directional_pad_speeds = {
     # up, down, left, right
@@ -41,6 +43,7 @@ def normalize_stick(x, y):
 def check_controller_state(robot: cozmo.robot.Robot, state):
     # face buttons
     # lift
+
     if state['buttons'] == GAMEPAD_B:
         robot.move_lift(1.0)
     elif state['buttons'] == GAMEPAD_A:
@@ -49,8 +52,12 @@ def check_controller_state(robot: cozmo.robot.Robot, state):
         robot.move_lift(0)
     # head
     if state['buttons'] == GAMEPAD_Y:
-        robot.go_to_object()
-        robot.pickup_object(num_retries=3)
+        cube = robot.world.wait_for_observed_light_cube(timeout=30)
+        if cube:
+            robot.go_to_object(cube, distance_mm(200.0)).wait_for_completed()
+
+            robot.pickup_object(cube, num_retries=0).wait_for_completed()
+
     # left stick
     left_x, left_y, left_magnitude = normalize_stick(state['l_thumb_x'], state['l_thumb_y'])
     # print("left :{0}, {1}, {2}".format(left_x, left_y, left_magnitude))
