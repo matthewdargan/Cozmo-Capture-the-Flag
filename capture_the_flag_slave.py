@@ -25,7 +25,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     robot_cubes, robot_origin = setup(robot, num_cubes, cube_color)
 
     # send robot 2's origin over the network to calibrate relativity
-    connection.send(b'%f %f' % (robot_origin.position.x, robot_origin.position.y))
+    connection.send(b'%f %f' % (abs(robot_origin.position.x), abs(robot_origin.position.y)))
 
     # get the cube positions
     cube1_pos = robot_cubes[0].pose
@@ -50,7 +50,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         # cube2_pos = robot_cubes[1].pose
         # cube3_pos = robot_cubes[2].pose
 
-        connection.send(b'%f %f' % (cube1_pos.position.x, cube1_pos.position.y))
+        connection.send(b'%f %f' % (abs(cube1_pos.position.x), abs(cube1_pos.position.y)))
 
         new_message = receive_message(connection)
 
