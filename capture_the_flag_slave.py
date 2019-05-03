@@ -32,9 +32,6 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     # cube2_pos = robot_cubes[1].pose
     # cube3_pos = robot_cubes[2].pose
 
-    # send cube locations
-    connection.send(b'%f %f' % (cube1_pos.position.x, cube1_pos.position.y))
-
     # default the message from master as None
     new_message = []
 
