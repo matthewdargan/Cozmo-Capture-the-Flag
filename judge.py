@@ -39,7 +39,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
             break
 
     # establish connection to the network and message retrieval
-    # connection: socket.socket = start_connection("10.0.1.10", 5000)
+    connection: socket.socket = start_connection("10.0.1.10", 5000)
     message: List[str] = []
 
     # setup the game
@@ -63,11 +63,11 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
         if robot_score == 3:
             break
 
-        # message = receive_message(connection)
+        message = receive_message(connection)
 
     # print the win state and terminate based on scoring the maximum number of points or receiving the exit message
     if robot_score == 3:
-        # connection.send(b'Exit %d' % team_id)
+        connection.send(b'Exit %d' % team_id)
         print('You won!')
     else:
         print('Robot %s won!' % message[1])
