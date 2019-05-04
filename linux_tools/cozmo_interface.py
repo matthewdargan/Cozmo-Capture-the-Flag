@@ -6,7 +6,7 @@ import cozmo
 from cozmo.util import radians
 
 from linux_tools import xbox
-from utils.colors import Colors
+from common.colors import Colors
 
 
 def cozmo_program(robot: cozmo.robot.Robot):

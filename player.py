@@ -6,16 +6,36 @@ from typing import List
 import cozmo
 
 from linux_tools import cozmo_interface
-from utils.message_forwarder import start_connection, receive_message
+from common.message_forwarder import start_connection, receive_message
 from windows_tools import xbox_controller
 
 
-def cozmo_program(robot: cozmo.robot.Robot):
+def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.blue_light):
     """
     Main entry point for running the controller logic in the capture the flag game.
 
     :param robot: a secondary robot in the game
+    :param cube_color color for this team
     """
+
+    # set backpack color
+    robot.set_all_backpack_lights(cube_color)
+
+    # get the id of the team the judge is on
+    while True:
+        try:
+            team_id: int = int(input("Which team is this player on?"))
+        except ValueError:
+            print("Invalid input type")
+            continue
+        if team_id < 1:
+            print("Must be between 1 and 3")
+            continue
+        elif team_id > 3:
+            print("Must be between 1 and 3")
+            continue
+        else:
+            break
 
     # establish connection to the network and message retrieval
     connection: socket.socket = start_connection("10.0.1.10", 5000)
@@ -34,7 +54,11 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # shutdown and exit the game, someone won the game
     xbox_thread.terminate()
-    robot.say_text('Game over!')
+
+    if int(message[1]) == team_id:
+        robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabCelebrate).wait_for_completed()
+    else:
+        robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabUnhappy).wait_for_completed()
 
 
 if __name__ == '__main__':

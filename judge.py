@@ -7,8 +7,8 @@ from typing import List
 import cozmo
 from cozmo.objects import LightCube
 
-from utils.setup import setup
-from utils.message_forwarder import start_connection, receive_message
+from common.setup import setup
+from common.message_forwarder import start_connection, receive_message
 
 
 def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.blue_light):
@@ -16,11 +16,30 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     Main entry point for running the scoring logic in the capture the flag game.
 
     :param robot: main robot in the game
-    :param cube_color color for this team's cubes
+    :param cube_color color for this team
     """
 
+    # set backpack color
+    robot.set_all_backpack_lights(cozmo.lights.red_light)
+
+    # get the id of the team the judge is on
+    while True:
+        try:
+            team_id: int = int(input("Which team is this judge on?"))
+        except ValueError:
+            print("Invalid input type")
+            continue
+        if team_id < 1:
+            print("Must be between 1 and 3")
+            continue
+        elif team_id > 3:
+            print("Must be between 1 and 3")
+            continue
+        else:
+            break
+
     # establish connection to the network and message retrieval
-    connection: socket.socket = start_connection("10.0.1.10", 5000)
+    # connection: socket.socket = start_connection("10.0.1.10", 5000)
     message: List[str] = []
 
     # setup the game
@@ -30,7 +49,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
     robot_score: int = 0
 
     # continuously check the cube object held up to the judge and increment the score accordingly
-    while robot_score is not 3 or 'Exit' not in message:
+    while robot_score != 3 or 'Exit' not in message:
         # wait for one the cubes to be shown to the judge
         captured_cube: LightCube = robot.world.wait_for_observed_light_cube()
 
@@ -40,14 +59,18 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
             robot_cubes.remove(captured_cube)
             robot_score += 1
 
-        message = receive_message(connection)
+        # break out of the loop if the maximum score has been reached, cube wait doesn't let the loop terminate
+        if robot_score == 3:
+            break
+
+        # message = receive_message(connection)
 
     # print the win state and terminate based on scoring the maximum number of points or receiving the exit message
     if robot_score == 3:
-        connection.send(b'Exit')
-        print('Robot 1 won!')
+        # connection.send(b'Exit %d' % team_id)
+        print('You won!')
     else:
-        print('Robot 2 won!')
+        print('Robot %s won!' % message[1])
 
 
 if __name__ == '__main__':
