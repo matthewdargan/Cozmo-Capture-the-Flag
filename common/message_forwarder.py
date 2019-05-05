@@ -14,6 +14,7 @@ def start_connection(ip: str, port: int) -> socket.socket:
 
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setblocking(False)
     except socket_error:
         print("Connection failed.")
 
@@ -34,11 +35,17 @@ def receive_message(connection: socket.socket) -> List[str]:
     :return: parameterized coordinate data
     """
 
-    bytedata = connection.recv(4048)
+    messages = []
 
-    if not bytedata:
-        return []
+    try:
+        bytedata = connection.recv(4048)
+        data = bytedata.decode('utf-8')
 
-    data = bytedata.decode('utf-8')
+        if not data:
+            print('No message to recieve')
+        else:
+            messages = data.split(' ')
+    except socket.error as e:
+        pass
 
-    return data.split(' ')
+    return messages
