@@ -1,5 +1,5 @@
-import multiprocessing
 import socket
+import threading
 from sys import platform
 from typing import List
 
@@ -43,18 +43,16 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # setup controller functionality
     if platform.system() == 'Windows':
-        xbox_thread = multiprocessing.Process(target=xbox_controller.cozmo_program(robot))
+        xbox_thread = threading.Thread(target=xbox_controller.cozmo_program(robot))
     else:
-        xbox_thread = multiprocessing.Process(target=cozmo_interface.cozmo_program(robot))
+        xbox_thread = threading.Thread(target=cozmo_interface.cozmo_program(robot))
 
+    xbox_thread.daemon = True
     xbox_thread.start()
     print('started controller')
 
     while 'Exit' not in message:
         message = receive_message(connection)
-
-    # shutdown and exit the game, someone won the game
-    xbox_thread.terminate()
 
     if int(message[1]) == team_id:
         robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabCelebrate).wait_for_completed()
