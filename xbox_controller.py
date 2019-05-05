@@ -1,7 +1,6 @@
-from windows_tools.xinput import *
+from xinput import *
 import cozmo
 from math import *
-from cozmo.objects import *
 from cozmo.util import distance_mm
 
 directional_pad_speeds = {

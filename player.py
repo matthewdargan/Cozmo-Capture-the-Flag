@@ -41,9 +41,9 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # setup controller functionality
     if platform.system() == 'Windows':
-        subprocess.call(['python', 'windows_tools/xbox_controller.py'])
+        subprocess.call(['python', 'xbox_controller.py'])
     else:
-        subprocess.call(['python', 'linux_tools/cozmo_interface.py'])
+        subprocess.call(['python', 'cozmo_interface.py'])
 
     while 'Exit' not in message:
         message = receive_message(connection)
