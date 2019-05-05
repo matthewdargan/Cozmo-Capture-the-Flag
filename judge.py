@@ -1,8 +1,8 @@
 """Capture the Flag game mode for cozmo
 Authors: Matthew Dargan, Daniel Stutz
 """
-import socket
 import concurrent.futures
+import socket
 
 from common.message_forwarder import start_connection, receive_message
 from common.setup import *
@@ -12,7 +12,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     """
     Main entry point for running the scoring logic in the capture the flag game.
 
-    :param robot: main robot in the game
+    :param robot: judge robot in the game
     """
 
     # get the id of the team the judge is on
@@ -54,10 +54,6 @@ def cozmo_program(robot: cozmo.robot.Robot):
             captured_cube = robot.world.wait_for_observed_light_cube(timeout=0.5)
         except concurrent.futures._base.TimeoutError:
             pass
-
-        # TODO: possibly use robot.world.wait_until_observe_num_objects and add captured cubes to a list to track
-        #       those cubes and change the colors for those cubes so that the game would support 3 teams, then
-        #       add green team to the team_colors and opponent_colors dictionaries
 
         # increment score and change cube color if the cube was valid and in-play
         if captured_cube in robot_cubes:
