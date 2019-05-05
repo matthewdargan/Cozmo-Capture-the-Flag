@@ -1,7 +1,13 @@
-from xinput import *
-import cozmo
+import socket
 from math import *
+from typing import List
+
+import cozmo
 from cozmo.util import distance_mm
+
+from common.message_forwarder import start_connection, receive_message
+from common.setup import team_colors
+from xinput import *
 
 directional_pad_speeds = {
     # up, down, left, right
@@ -102,6 +108,28 @@ def check_controller_state(robot: cozmo.robot.Robot, state):
 
 
 def cozmo_program(robot: cozmo.robot.Robot):
+    # get the id of the team the judge is on
+    while True:
+        try:
+            team_id: int = int(input("Which team is this player on?"))
+        except ValueError:
+            print("Invalid input type")
+            continue
+        if team_id < 1:
+            print("Must be between 1 and 2")
+            continue
+        elif team_id > 3:
+            print("Must be between 1 and 2")
+            continue
+        else:
+            break
+
+    # set backpack color
+    robot.set_all_backpack_lights(team_colors[team_id])
+
+    # establish connection to the network and message retrieval
+    connection: socket.socket = start_connection("10.0.1.10", 5000)
+    message: List[str] = []
 
     joysticks = XInputJoystick.enumerate_devices()
 
@@ -110,14 +138,20 @@ def cozmo_program(robot: cozmo.robot.Robot):
     else:
         print("No controller is connected. Please connect xbox controller.")
         sys.exit(0)
+
     # use only the first controller
     joystick = joysticks[0]
 
-    while True:
+    while 'Exit' not in message:
         state = joystick.get_state()
-        # print(state)
         check_controller_state(robot, state)
+        message = receive_message(connection)
         time.sleep(.01)
+
+    if int(message[1]) == team_id:
+        robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabCelebrate).wait_for_completed()
+    else:
+        robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabUnhappy).wait_for_completed()
 
 
 cozmo.run_program(cozmo_program)
