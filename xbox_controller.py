@@ -146,7 +146,6 @@ def cozmo_program(robot: cozmo.robot.Robot):
         state = joystick.get_state()
         check_controller_state(robot, state)
         message = receive_message(connection)
-        time.sleep(.01)
 
     if int(message[1]) == team_id:
         robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabCelebrate).wait_for_completed()
@@ -154,4 +153,5 @@ def cozmo_program(robot: cozmo.robot.Robot):
         robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabUnhappy).wait_for_completed()
 
 
-cozmo.run_program(cozmo_program)
+if __name__ == '__main__':
+    cozmo.run_program(cozmo_program)
