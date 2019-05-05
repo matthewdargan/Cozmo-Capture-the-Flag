@@ -26,9 +26,9 @@ the Xbox 360 controller but the Windows driver supports both Xbox 360 and Xbox O
 * At least four Android or iOS devices and a USB cable to connect the device to a computer to run the game logic
 
 ## TODO
-- [ ] Abstractions for interactions between more than 2 Cozmos
-- [ ] Finish Judge logic 
-- [ ] Setup the player scripts asynchronously to run the xbox controller modules and listen for messages on the network
+- [x] Abstractions for interactions between more than 2 Cozmos
+- [x] Finish Judge logic 
+- [x] Setup the player scripts asynchronously to run the xbox controller modules and listen for messages on the network
 
 ## Dependencies
 * [Xbox Controller Interface for Cozmo](https://github.com/matthewdargan/Cozmo-Xbox-Controller)
