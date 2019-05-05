@@ -14,7 +14,6 @@ def start_connection(ip: str, port: int) -> socket.socket:
 
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setblocking(False)
     except socket_error:
         print("Connection failed.")
 
@@ -23,6 +22,7 @@ def start_connection(ip: str, port: int) -> socket.socket:
     except socket_error:
         print('Socket failed to bind')
 
+    s.setblocking(False)
     return s
 
 
@@ -39,7 +39,7 @@ def receive_message(connection: socket.socket) -> List[str]:
         data = connection.recv(4048).decode('utf-8')
 
         if not data:
-            print('No message to recieve')
+            print('No message to receive')
         else:
             return data.split(' ')
     except socket.error:

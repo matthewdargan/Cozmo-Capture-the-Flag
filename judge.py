@@ -69,6 +69,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
             break
 
         message = receive_message(connection)
+        print(message)
 
     # print the win state and terminate based on scoring the maximum number of points or receiving the exit message
     if robot_score == 3:
