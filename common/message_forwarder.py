@@ -36,7 +36,8 @@ def receive_message(connection: socket.socket) -> List[str]:
     """
 
     try:
-        data = connection.recv(4048).decode('utf-8')
+        bytedata = connection.recv(4048)
+        data = bytedata.decode('utf-8')
 
         if not data:
             print('No message to receive')

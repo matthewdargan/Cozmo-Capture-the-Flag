@@ -45,7 +45,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     robot_score: int = 0
 
     # continuously check the cube object held up to the judge and increment the score accordingly
-    while robot_score != 3 or 'Exit' not in message:
+    while 'Exit' not in message:
         captured_cube = None
 
         # wait for one the cubes to be shown to the judge
@@ -69,7 +69,6 @@ def cozmo_program(robot: cozmo.robot.Robot):
             break
 
         message = receive_message(connection)
-        print(message)
 
     # print the win state and terminate based on scoring the maximum number of points or receiving the exit message
     if robot_score == 3:
