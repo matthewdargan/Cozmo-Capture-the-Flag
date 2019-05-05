@@ -48,6 +48,10 @@ def cozmo_program(robot: cozmo.robot.Robot):
         # wait for one the cubes to be shown to the judge
         captured_cube: LightCube = robot.world.wait_for_observed_light_cube()
 
+        # TODO: possibly use robot.world.wait_until_observe_num_objects and add captured cubes to a list to track
+        #       those cubes and change the colors for those cubes so that the game would support 3 teams, then
+        #       add green team to the team_colors and opponent_colors dictionaries
+
         # increment score and change cube color if the cube was valid and in-play
         if captured_cube in robot_cubes:
             captured_cube.set_lights(team_colors[team_id])
