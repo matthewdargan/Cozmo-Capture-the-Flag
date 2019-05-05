@@ -22,10 +22,11 @@ def start_connection(ip: str, port: int) -> socket.socket:
     except socket_error:
         print('Socket failed to bind')
 
+    s.setblocking(False)
     return s
 
 
-def receive_message(connection: socket.socket) -> List[List[str]]:
+def receive_message(connection: socket.socket) -> List[str]:
     """
     Receive a cube message from the network and parse it into sections so we can
     check the coordinates of a robot's cubes against a base.
@@ -34,18 +35,13 @@ def receive_message(connection: socket.socket) -> List[List[str]]:
     :return: parameterized coordinate data
     """
 
-    cont = True
-    messages = []
-
-    while cont:
+    try:
         bytedata = connection.recv(4048)
         data = bytedata.decode('utf-8')
 
         if not data:
-            print('No message to recieve')
-            cont = False
+            print('No message to receive')
         else:
-            words = data.split(' ')
-            messages.append(words)
-
-    return messages
+            return data.split(' ')
+    except socket.error:
+        return []

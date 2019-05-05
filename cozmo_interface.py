@@ -5,8 +5,8 @@ Authors: Matthew Dargan, Daniel Stutz
 import cozmo
 from cozmo.util import radians
 
-from linux_tools import xbox
-from colors import Colors
+import xbox
+from common.colors import Colors
 
 
 def cozmo_program(robot: cozmo.robot.Robot):
