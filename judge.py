@@ -46,9 +46,11 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # continuously check the cube object held up to the judge and increment the score accordingly
     while robot_score != 3 or 'Exit' not in message:
+        captured_cube = None
+
         # wait for one the cubes to be shown to the judge
         try:
-            captured_cube: LightCube = robot.world.wait_for_observed_light_cube(timeout=0.5)
+            captured_cube = robot.world.wait_for_observed_light_cube(timeout=0.5)
         except concurrent.futures._base.TimeoutError:
             pass
 
