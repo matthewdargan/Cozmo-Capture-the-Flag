@@ -5,21 +5,18 @@ from typing import List
 
 import cozmo
 
-from linux_tools import cozmo_interface
 from common.message_forwarder import start_connection, receive_message
+from common.setup import team_colors
+from linux_tools import cozmo_interface
 from windows_tools import xbox_controller
 
 
-def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.blue_light):
+def cozmo_program(robot: cozmo.robot.Robot):
     """
     Main entry point for running the controller logic in the capture the flag game.
 
     :param robot: a secondary robot in the game
-    :param cube_color color for this team
     """
-
-    # set backpack color
-    robot.set_all_backpack_lights(cube_color)
 
     # get the id of the team the judge is on
     while True:
@@ -29,13 +26,16 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
             print("Invalid input type")
             continue
         if team_id < 1:
-            print("Must be between 1 and 3")
+            print("Must be between 1 and 2")
             continue
         elif team_id > 3:
-            print("Must be between 1 and 3")
+            print("Must be between 1 and 2")
             continue
         else:
             break
+
+    # set backpack color
+    robot.set_all_backpack_lights(team_colors[team_id])
 
     # establish connection to the network and message retrieval
     connection: socket.socket = start_connection("10.0.1.10", 5000)

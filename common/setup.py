@@ -1,8 +1,12 @@
 import time
-from typing import List
+from typing import List, Dict
 
 import cozmo
 from cozmo.objects import LightCube, LightCube1Id, LightCube2Id, LightCube3Id
+
+# colors to use for the corresponding teams
+team_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.red_light, 2: cozmo.lights.blue_light}
+opponent_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.blue_light, 2: cozmo.lights.red_light}
 
 
 def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light) -> (List[LightCube]):

@@ -2,25 +2,17 @@
 Authors: Matthew Dargan, Daniel Stutz
 """
 import socket
-from typing import List
 
-import cozmo
-from cozmo.objects import LightCube
-
-from common.setup import setup
 from common.message_forwarder import start_connection, receive_message
+from common.setup import *
 
 
-def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = cozmo.lights.blue_light):
+def cozmo_program(robot: cozmo.robot.Robot):
     """
     Main entry point for running the scoring logic in the capture the flag game.
 
     :param robot: main robot in the game
-    :param cube_color color for this team
     """
-
-    # set backpack color
-    robot.set_all_backpack_lights(cozmo.lights.red_light)
 
     # get the id of the team the judge is on
     while True:
@@ -30,20 +22,23 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
             print("Invalid input type")
             continue
         if team_id < 1:
-            print("Must be between 1 and 3")
+            print("Must be between 1 and 2")
             continue
-        elif team_id > 3:
-            print("Must be between 1 and 3")
+        elif team_id > 2:
+            print("Must be between 1 and 2")
             continue
         else:
             break
+
+    # set backpack color
+    robot.set_all_backpack_lights(team_colors[team_id])
 
     # establish connection to the network and message retrieval
     connection: socket.socket = start_connection("10.0.1.10", 5000)
     message: List[str] = []
 
     # setup the game
-    robot_cubes: List[LightCube] = setup(robot, cube_color)
+    robot_cubes: List[LightCube] = setup(robot, opponent_colors[team_id])
 
     # set default score
     robot_score: int = 0
@@ -55,7 +50,7 @@ def cozmo_program(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light = coz
 
         # increment score and change cube color if the cube was valid and in-play
         if captured_cube in robot_cubes:
-            captured_cube.set_lights(cozmo.lights.red_light)
+            captured_cube.set_lights(team_colors[team_id])
             robot_cubes.remove(captured_cube)
             robot_score += 1
 
