@@ -48,6 +48,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
         xbox_thread = multiprocessing.Process(target=cozmo_interface.cozmo_program(robot))
 
     xbox_thread.start()
+    print('started controller')
 
     while 'Exit' not in message:
         message = receive_message(connection)

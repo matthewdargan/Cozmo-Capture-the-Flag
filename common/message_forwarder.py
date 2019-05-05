@@ -34,13 +34,11 @@ def receive_message(connection: socket.socket) -> List[str]:
     :return: parameterized coordinate data
     """
 
-    messages = []
     bytedata = connection.recv(4048)
+
+    if not bytedata:
+        return []
+
     data = bytedata.decode('utf-8')
 
-    if not data:
-        print('No message to recieve')
-    else:
-        messages = data.split(' ')
-
-    return messages
+    return data.split(' ')
