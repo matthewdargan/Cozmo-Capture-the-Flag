@@ -1,6 +1,6 @@
 import socket
 import subprocess
-from sys import platform
+import platform
 from typing import List
 
 import cozmo

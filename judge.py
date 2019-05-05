@@ -31,8 +31,9 @@ def cozmo_program(robot: cozmo.robot.Robot):
         else:
             break
 
-    # set backpack color
+    # set backpack color and head angle
     robot.set_all_backpack_lights(team_colors[team_id])
+    robot.set_head_angle(cozmo.util.Angle())
 
     # establish connection to the network and message retrieval
     connection: socket.socket = start_connection("10.0.1.10", 5000)
