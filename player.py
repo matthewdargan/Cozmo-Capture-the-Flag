@@ -1,5 +1,5 @@
 import socket
-import threading
+import subprocess
 from sys import platform
 from typing import List
 
@@ -7,8 +7,6 @@ import cozmo
 
 from common.message_forwarder import start_connection, receive_message
 from common.setup import team_colors
-from linux_tools import cozmo_interface
-from windows_tools import xbox_controller
 
 
 def cozmo_program(robot: cozmo.robot.Robot):
@@ -43,13 +41,9 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     # setup controller functionality
     if platform.system() == 'Windows':
-        xbox_thread = threading.Thread(target=xbox_controller.cozmo_program(robot))
+        subprocess.call(['python', 'windows_tools/xbox_controller.py'])
     else:
-        xbox_thread = threading.Thread(target=cozmo_interface.cozmo_program(robot))
-
-    xbox_thread.daemon = True
-    xbox_thread.start()
-    print('started controller')
+        subprocess.call(['python', 'linux_tools/cozmo_interface.py'])
 
     while 'Exit' not in message:
         message = receive_message(connection)
