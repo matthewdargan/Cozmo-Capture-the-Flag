@@ -6,7 +6,7 @@ import cozmo
 from cozmo.util import distance_mm
 
 from common.message_forwarder import start_connection, receive_message
-from common.setup import team_colors
+from common.setup import get_team_colors
 from xinput import *
 
 directional_pad_speeds = {
@@ -115,6 +115,22 @@ def cozmo_program(robot: cozmo.robot.Robot):
     :param robot: player robot in the game
     """
 
+    # get number of teams playing in the game
+    while True:
+        try:
+            teams: int = int(input("How many teams are playing?"))
+        except ValueError:
+            print("Invalid input type")
+            continue
+        if teams < 2:
+            print("Must be between 2 and 3")
+            continue
+        elif teams > 3:
+            print("Must be between 1 and 3")
+            continue
+        else:
+            break
+
     # get the id of the team the judge is on
     while True:
         try:
@@ -123,13 +139,16 @@ def cozmo_program(robot: cozmo.robot.Robot):
             print("Invalid input type")
             continue
         if team_id < 1:
-            print("Must be between 1 and 2")
+            print("Must be between 1 and 3")
             continue
         elif team_id > 3:
-            print("Must be between 1 and 2")
+            print("Must be between 1 and 3")
             continue
         else:
             break
+
+    # get the corresponding team colors and opponent colors
+    team_colors, opponent_colors = get_team_colors(teams)
 
     # set backpack color
     robot.set_all_backpack_lights(team_colors[team_id])
@@ -154,6 +173,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
         check_controller_state(robot, state)
         message = receive_message(connection)
 
+    # play the appropriate robot emotion based on who won the game
     if int(message[1]) == team_id:
         robot.play_anim_trigger(cozmo.anim.Triggers.CodeLabCelebrate).wait_for_completed()
     else:

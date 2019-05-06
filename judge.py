@@ -3,6 +3,7 @@ Authors: Matthew Dargan, Daniel Stutz
 """
 import concurrent.futures
 import socket
+from typing import Dict
 
 from common.message_forwarder import start_connection, receive_message
 from common.setup import *
@@ -15,6 +16,22 @@ def cozmo_program(robot: cozmo.robot.Robot):
     :param robot: judge robot in the game
     """
 
+    # get number of teams playing in the game
+    while True:
+        try:
+            teams: int = int(input("How many teams are playing?"))
+        except ValueError:
+            print("Invalid input type")
+            continue
+        if teams < 2:
+            print("Must be between 2 and 3")
+            continue
+        elif teams > 3:
+            print("Must be between 1 and 3")
+            continue
+        else:
+            break
+
     # get the id of the team the judge is on
     while True:
         try:
@@ -23,13 +40,16 @@ def cozmo_program(robot: cozmo.robot.Robot):
             print("Invalid input type")
             continue
         if team_id < 1:
-            print("Must be between 1 and 2")
+            print("Must be between 1 and 3")
             continue
-        elif team_id > 2:
-            print("Must be between 1 and 2")
+        elif team_id > 3:
+            print("Must be between 1 and 3")
             continue
         else:
             break
+
+    # get the corresponding team colors and opponent colors
+    team_colors, opponent_colors = get_team_colors(teams)
 
     # set backpack color and head angle
     robot.set_all_backpack_lights(team_colors[team_id])
