@@ -4,10 +4,6 @@ from typing import List, Dict
 import cozmo
 from cozmo.objects import LightCube, LightCube1Id, LightCube2Id, LightCube3Id
 
-# colors to use for the corresponding teams
-team_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.red_light, 2: cozmo.lights.blue_light}
-opponent_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.blue_light, 2: cozmo.lights.red_light}
-
 
 def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light) -> (List[LightCube]):
     """
@@ -34,3 +30,21 @@ def setup(robot: cozmo.robot.Robot, cube_color: cozmo.lights.Light) -> (List[Lig
     print("Start playing!")
 
     return robot_cubes
+
+
+def get_team_colors(teams: int) -> (Dict[int, cozmo.lights.Light], Dict[int, cozmo.lights.Light]):
+    """
+    Gets the team colors and opponent colors based on the number of teams playing in the game.
+
+    :param teams: number of teams playing in the game
+    :return: the team colors and the opponent colors
+    """
+    team_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.red_light, 2: cozmo.lights.blue_light}
+    opponent_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.blue_light, 2: cozmo.lights.red_light}
+
+    if teams == 3:
+        team_colors[3] = cozmo.lights.green_light
+        opponent_colors: Dict[int, cozmo.lights.Light] = {1: cozmo.lights.green_light, 2: cozmo.lights.red_light,
+                                                          3: cozmo.lights.blue_light}
+
+    return team_colors, opponent_colors
