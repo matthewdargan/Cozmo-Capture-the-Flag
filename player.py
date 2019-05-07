@@ -50,9 +50,9 @@ def check_controller_state(robot: cozmo.robot.Robot, state):
     # lift
 
     if state['buttons'] == GAMEPAD_B:
-        robot.move_lift(1.0)
+        robot.move_lift(0.3)
     elif state['buttons'] == GAMEPAD_A:
-        robot.move_lift(-1.0)
+        robot.move_lift(-0.3)
     else:
         robot.move_lift(0)
     # head
@@ -114,7 +114,6 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
     :param robot: player robot in the game
     """
-
     # get number of teams playing in the game
     while True:
         try:
@@ -153,6 +152,8 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # set backpack color
     robot.set_all_backpack_lights(team_colors[team_id])
 
+    # set head angle so Cozmo can identify cubes
+    robot.set_head_angle(cozmo.util.Angle(degrees=0))
     # establish connection to the network and message retrieval
     connection: socket.socket = start_connection("10.0.1.10", 5000)
     message: List[str] = []
